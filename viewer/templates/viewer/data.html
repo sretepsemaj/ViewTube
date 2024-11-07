@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Saved Videos Data</title>
+    <style>
+        .video-box {
+            margin-top: 15px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .thumbnail {
+            width: 120px;
+            height: auto;
+            margin-right: 15px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Saved Videos Data</h1>
+
+    {% if data %}
+        {% for video in data %}
+        <div class="video-box">
+            <p><strong>Video ID:</strong> {{ video.video_id }}</p>
+            <p><strong>Title:</strong> {{ video.title }}</p>
+            <p><strong>Description:</strong> {{ video.description }}</p>
+            <p><strong>Channel:</strong> {{ video.channel_title }}</p>
+            <p><strong>Published At:</strong> {{ video.published_at }}</p>
+            <img src="{{ video.thumbnail_url }}" alt="Thumbnail" class="thumbnail">
+            <p><a href="https://www.youtube.com/watch?v={{ video.video_id }}" target="_blank">Watch Video</a></p>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p>No videos found.</p>
+    {% endif %}
+</body>
+</html>
