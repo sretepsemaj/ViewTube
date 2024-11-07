@@ -2,35 +2,87 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>YouTube Comments</title>
+    <title>Comments Details</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .comment-box {
+            margin-top: 15px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .author-info {
+            display: flex;
+            align-items: center;
+        }
+        .author-profile {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+        .comment-text {
+            margin-top: 10px;
+            font-size: 16px;
+            color: #333;
+        }
+        .comment-meta {
+            font-size: 14px;
+            color: #888;
+            margin-top: 5px;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        .debug-info {
+            color: #666;
+            margin-bottom: 15px;
+        }
+    </style>
 </head>
 <body>
-    <h1>YouTube Comments</h1>
-    <nav>
-        <button onclick="window.location.href='{% url 'creator_home' %}'">Back to Creator Home</button>
-    </nav>
+    <h1>Comments Details</h1>
+    
+    <!-- Form for inputting the video ID -->
     <form method="post">
         {% csrf_token %}
         <label for="video_id">Enter YouTube Video ID:</label>
         <input type="text" name="video_id" id="video_id" required>
         <button type="submit">Fetch Comments</button>
     </form>
-
+    <form method="post" action="{% url 'populate_comments' %}">
+        {% csrf_token %}
+        <button type="submit">Populate Database</button>
+    </form>
+    
     {% if comments %}
-        <h2>Comments:</h2>
-        <ul>
-            {% for item in comments %}
-                <li>
-                    <strong>Author:</strong> {{ item.snippet.topLevelComment.snippet.authorDisplayName }}<br>
-                    <strong>Comment:</strong> {{ item.snippet.topLevelComment.snippet.textDisplay }}<br>
-                    <strong>Likes:</strong> {{ item.snippet.topLevelComment.snippet.likeCount }}<br>
-                    <strong>Published At:</strong> {{ item.snippet.topLevelComment.snippet.publishedAt }}<br>
-                </li>
-                <hr>
-            {% endfor %}
-        </ul>
+        <p class="debug-info">Debug: {{ comments|length }} comments found.</p>
+        {% for comment in comments %}
+        <div class="comment-box">
+            <div class="author-info">
+                <img src="{{ comment.profile_image }}" alt="Profile Image" class="author-profile">
+                <div>
+                    <a href="{{ comment.channel_url }}" target="_blank">{{ comment.author }}</a>
+                    <p><strong>Comment ID:</strong> {{ comment.comment_id }}</p>
+                </div>
+            </div>
+            <div class="comment-text">{{ comment.text_display|safe }}</div>
+            <div class="comment-meta">
+                <p><strong>Published at:</strong> {{ comment.published_at }}</p>
+                <p><strong>Likes:</strong> {{ comment.like_count }}</p>
+                <p><strong>Viewer Rating:</strong> {{ comment.viewer_rating }}</p>
+                <p><strong>Can Rate:</strong> {{ comment.can_rate }}</p>
+                <p><strong>Replies Count:</strong> {{ comment.replies_count }}</p>
+            </div>
+        </div>
+        {% endfor %}
     {% else %}
-        <p>No comments to display. Please enter a video ID to fetch comments.</p>
+        <p>No comments found for this video.</p>
     {% endif %}
 </body>
 </html>

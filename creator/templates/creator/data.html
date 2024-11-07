@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Article Data</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .article-box {
+            margin-top: 15px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .article-details p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Article Data</h1>
+    {% if articles %}
+        {% for article in articles %}
+        <div class="article-box">
+            <div class="article-details">
+                <p><strong>Comment ID:</strong> {{ article.comment_id }}</p>
+                <p><strong>Author:</strong> {{ article.author }}</p>
+                <p><img src="{{ article.profile_image }}" alt="Profile Image" style="width: 50px; height: 50px; border-radius: 50%;"></p>
+                <p><strong>Channel URL:</strong> <a href="{{ article.channel_url }}" target="_blank">{{ article.channel_url }}</a></p>
+                <p><strong>Text:</strong> {{ article.text_display }}</p>
+                <p><strong>Published At:</strong> {{ article.published_at }}</p>
+                <p><strong>Like Count:</strong> {{ article.like_count }}</p>
+                <p><strong>Viewer Rating:</strong> {{ article.viewer_rating }}</p>
+                <p><strong>Can Rate:</strong> {{ article.can_rate }}</p>
+                <p><strong>Replies Count:</strong> {{ article.replies_count }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p>No articles found.</p>
+    {% endif %}
+</body>
+</html>
