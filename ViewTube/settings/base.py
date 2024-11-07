@@ -28,6 +28,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'creator',  # Add a comma after each app
+    'viewer',
+    'ViewTube',
 ]
 
 MIDDLEWARE = [
@@ -41,6 +44,9 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'ViewTube.urls'
+
+
+
 
 TEMPLATES = [
     {
@@ -57,6 +63,9 @@ TEMPLATES = [
         },
     },
 ]
+
+
+
 
 WSGI_APPLICATION = 'ViewTube.wsgi.application'
 

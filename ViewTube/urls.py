@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from . import views  # Import the home view from your project
+from . import views  # Ensure you have this line to import the home view
 
 urlpatterns = [
     path('', views.home, name='home'),  # Root URL path
