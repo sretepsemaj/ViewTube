@@ -1,5 +1,5 @@
 # ViewTube
-
+SO FAR WE ARE USING A YOUTUBE API ONLY, BUT IF YOU GO TO THE BASE.PY IN SETTING YOULL SEE ALL THE API WE MAY USE FOR THIS PROJECT. GROQ IS BEST BECAUSE THE TOKEN ARE CHEAP FOR NOW.
 ViewTube is an open-source Django project designed for [brief description of your project]. 
 
 ## Features
