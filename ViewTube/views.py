@@ -1,4 +1,4 @@
-from django.http import HttpResponse
+from django.shortcuts import render
 
 def home(request):
-    return HttpResponse("Welcome to the ViewTube Home Page")
+    return render(request, 'home.html')  # This should render the home.html template

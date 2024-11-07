@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>YouTube Comments</title>
+</head>
+<body>
+    <h1>YouTube Comments</h1>
+    <nav>
+        <button onclick="window.location.href='{% url 'creator_home' %}'">Back to Creator Home</button>
+    </nav>
+    <form method="post">
+        {% csrf_token %}
+        <label for="video_id">Enter YouTube Video ID:</label>
+        <input type="text" name="video_id" id="video_id" required>
+        <button type="submit">Fetch Comments</button>
+    </form>
+
+    {% if comments %}
+        <h2>Comments:</h2>
+        <ul>
+            {% for item in comments %}
+                <li>
+                    <strong>Author:</strong> {{ item.snippet.topLevelComment.snippet.authorDisplayName }}<br>
+                    <strong>Comment:</strong> {{ item.snippet.topLevelComment.snippet.textDisplay }}<br>
+                    <strong>Likes:</strong> {{ item.snippet.topLevelComment.snippet.likeCount }}<br>
+                    <strong>Published At:</strong> {{ item.snippet.topLevelComment.snippet.publishedAt }}<br>
+                </li>
+                <hr>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No comments to display. Please enter a video ID to fetch comments.</p>
+    {% endif %}
+</body>
+</html>

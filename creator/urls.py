@@ -1,6 +1,9 @@
 from django.urls import path
-from . import views  # This imports views from the same folder
+from . import views
 
 urlpatterns = [
-    path('', views.home, name='creator_home'),  # Correct reference to views.home
+    path('', views.creator_view, name='creator_home'),  # Name your path to use in templates
+    path('tubeapi/', views.youtube_api_call, name='tubeapi'),
+    path('comments/', views.youtube_comments_call, name='comments'),
 ]
+
