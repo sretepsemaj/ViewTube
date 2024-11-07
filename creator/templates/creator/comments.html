@@ -55,13 +55,15 @@
         <input type="text" name="video_id" id="video_id" required>
         <button type="submit">Fetch Comments</button>
     </form>
-    <form method="post" action="{% url 'populate_comments' %}">
-        {% csrf_token %}
-        <button type="submit">Populate Database</button>
-    </form>
     
     {% if comments %}
         <p class="debug-info">Debug: {{ comments|length }} comments found.</p>
+        <!-- Form for saving comments to the database -->
+        <form method="post" action="{% url 'save_comments' %}">
+            {% csrf_token %}
+            <button type="submit">Save and View Saved Data</button>
+        </form>
+
         {% for comment in comments %}
         <div class="comment-box">
             <div class="author-info">

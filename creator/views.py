@@ -62,37 +62,61 @@ def youtube_comments_call(request):
 
     return render(request, 'creator/comments.html', {'comments': comments})
 
-def populate_comments(request):
+def save_comments(request):
     if request.method == 'POST' and request.session.get('comments'):
         comments_data = request.session['comments']
+        saved_count = 0
+
         for comment in comments_data:
+            print(f"Attempting to save comment: {comment['comment_id']} by {comment['author']}")
             try:
-                # Log each comment being saved for debugging
-                print(f"Saving comment: {comment['comment_id']} by {comment['author']}")
-                ArticleCom.objects.create(
-                    comment_id=comment['comment_id'],
-                    author=comment['author'],
-                    profile_image=comment['profile_image'],
-                    channel_url=comment['channel_url'],
-                    text_display=comment['text_display'],
-                    published_at=comment['published_at'],
-                    like_count=comment['like_count'],
-                    viewer_rating=comment.get('viewer_rating', 'none'),
-                    can_rate=comment['can_rate'],
-                    replies_count=comment.get('replies_count', 0)
-                )
+                if not ArticleCom.objects.filter(comment_id=comment['comment_id']).exists():
+                    ArticleCom.objects.create(
+                        comment_id=comment['comment_id'],
+                        author=comment['author'],
+                        profile_image=comment['profile_image'],
+                        channel_url=comment['channel_url'],
+                        text_display=comment['text_display'],
+                        published_at=comment['published_at'],
+                        like_count=comment['like_count'],
+                        viewer_rating=comment.get('viewer_rating', 'none'),
+                        can_rate=comment['can_rate'],
+                        replies_count=comment.get('replies_count', 0)
+                    )
+                    saved_count += 1
+                    print(f"Comment {comment['comment_id']} saved successfully.")
+                else:
+                    print(f"Comment {comment['comment_id']} already exists. Skipping.")
             except Exception as e:
                 print(f"Error saving comment {comment['comment_id']}: {e}")
 
-        # Retrieve all saved comments to display on the page
-        saved_comments = ArticleCom.objects.all()
-        return render(request, 'creator/populate.html', {'saved_comments': saved_comments})
+        print(f"Total comments saved: {saved_count}")
+        return redirect('article_data')  # Replace with the correct name of your data view
 
-    return render(request, 'creator/populate.html', {'saved_comments': []})
+    return render(request, 'creator/save_comments.html')
+
+def data_view(request):
+    filter_param = request.GET.get('filter', '')
+    data_query = ArticleCom.objects.all()
+
+    if filter_param:
+        data_query = data_query.filter(
+            Q(author__icontains=filter_param) | 
+            Q(text_display__icontains=filter_param) | 
+            Q(channel_url__icontains=filter_param)
+        )
+
+    # Debugging output
+    print(f"Data passed to template: {data_query}")
+
+    return render(request, 'creator/data.html', {'data': data_query})
 
 def render_article_data(request):
-    # Retrieve all ArticleCom entries from the database
-    articles = ArticleCom.objects.all()
+    """
+    Render all articles from the ArticleCom model to the data.html template.
+    """
+    articles = ArticleCom.objects.all()  # Query all article comments
+    # Debug output to verify the number of articles
+    print(f"Number of articles passed to template: {articles.count()}")
 
-    # Render the data in the 'data.html' template
-    return render(request, 'creator/data.html', {'articles': articles})
+    return render(request, 'creator/data.html', {'data': articles})
