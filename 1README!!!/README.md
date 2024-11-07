@@ -3,9 +3,8 @@ SO FAR WE ARE USING A YOUTUBE API ONLY, BUT IF YOU GO TO THE BASE.PY IN SETTING 
 ViewTube is an open-source Django project designed for [brief description of your project]. 
 
 ## Features
-- Feature 1
-- Feature 2
-- Feature 3
+- Feature 1 MAKES A 5 VIDEO CALL
+- Feature 2 TAKES COMMENTS FOR A GIVEN VIDEO ID
 
 ## Installation
 
