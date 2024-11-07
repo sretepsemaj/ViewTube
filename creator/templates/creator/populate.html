@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Populate Database with Comments</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .comment-box {
+            margin-top: 15px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .comment-meta {
+            font-size: 14px;
+            color: #888;
+        }
+        .comment-details p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Populate Database with Comments</h1>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit">Populate Database</button>
+    </form>
+
+    <h2>Saved Comments</h2>
+    {% if saved_comments %}
+        {% for comment in saved_comments %}
+        <div class="comment-box">
+            <div class="comment-details">
+                <p><strong>Comment ID:</strong> {{ comment.comment_id }}</p>
+                <p><strong>Author:</strong> {{ comment.author }}</p>
+                <p><img src="{{ comment.profile_image }}" alt="Profile Image" style="width: 50px; height: 50px; border-radius: 50%;"></p>
+                <p><strong>Channel URL:</strong> <a href="{{ comment.channel_url }}" target="_blank">{{ comment.channel_url }}</a></p>
+                <p><strong>Text:</strong> {{ comment.text_display }}</p>
+                <p><strong>Published At:</strong> {{ comment.published_at }}</p>
+                <p><strong>Like Count:</strong> {{ comment.like_count }}</p>
+                <p><strong>Viewer Rating:</strong> {{ comment.viewer_rating }}</p>
+                <p><strong>Can Rate:</strong> {{ comment.can_rate }}</p>
+                <p><strong>Replies Count:</strong> {{ comment.replies_count }}</p>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <p>No comments data available for population.</p>
+    {% endif %}
+</body>
+</html>
