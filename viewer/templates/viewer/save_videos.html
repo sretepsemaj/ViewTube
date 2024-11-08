@@ -1,0 +1,63 @@
+<!-- viewer/templates/viewer/save_videos.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Save Videos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .success {
+            padding: 20px;
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            border-radius: 5px;
+            max-width: 600px;
+            margin: auto;
+        }
+        .errors {
+            padding: 20px;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            border-radius: 5px;
+            max-width: 600px;
+            margin: auto;
+        }
+        a {
+            display: block;
+            margin-top: 20px;
+            text-align: center;
+            text-decoration: none;
+            color: #007bff;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    {% if saved_count %}
+        <div class="success">
+            <h2>Videos Saved Successfully!</h2>
+            <p>{{ saved_count }} video{{ saved_count|pluralize }} have been saved to the database.</p>
+        </div>
+    {% endif %}
+    
+    {% if error_messages %}
+        <div class="errors">
+            <h2>Some Errors Occurred</h2>
+            <ul>
+                {% for error in error_messages %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+    
+    <a href="{% url 'video_data' %}">View Saved Videos</a>
+    <a href="{% url 'viewer_view' %}">Back to Home</a>
+</body>
+</html>

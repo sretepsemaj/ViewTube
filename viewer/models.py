@@ -1,6 +1,6 @@
 from django.db import models
 
-class Video(models.Model):
+class ArticleVid(models.Model):
     video_id = models.CharField(max_length=20, unique=True)
     title = models.CharField(max_length=255)
     description = models.TextField()

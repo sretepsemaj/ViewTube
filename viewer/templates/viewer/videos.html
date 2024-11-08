@@ -1,0 +1,76 @@
+<!-- viewer/templates/viewer/videos.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Search YouTube Videos</title>
+    <style>
+        /* Basic styling for better presentation */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .video-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .video-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+        .video-thumbnail {
+            margin-right: 20px;
+        }
+        .video-details {
+            max-width: 800px;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Search YouTube Videos</h1>
+    <form method="POST" action="{% url 'video' %}">
+        {% csrf_token %}
+        <label for="query">Keyword:</label>
+        <input type="text" id="query" name="query" value="{{ query }}" required>
+        <button type="submit">Search</button>
+    </form>
+
+    {% if error_message %}
+        <p class="error">{{ error_message }}</p>
+    {% endif %}
+
+    {% if videos %}
+        <h2>Search Results:</h2>
+        <ul class="video-list">
+            {% for video in videos %}
+                <li class="video-item">
+                    <div class="video-thumbnail">
+                        <a href="https://www.youtube.com/watch?v={{ video.video_id }}" target="_blank">
+                            <img src="{{ video.thumbnail_url }}" alt="{{ video.title }}" width="120">
+                        </a>
+                    </div>
+                    <div class="video-details">
+                        <strong>{{ video.title }}</strong><br>
+                        {{ video.description|truncatechars:100 }}<br>
+                        Channel: {{ video.channel_title }}<br>
+                        Published at: {{ video.published_at|date:"F d, Y H:i" }}
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+        <form method="POST" action="{% url 'save_video' %}">
+            {% csrf_token %}
+            <button type="submit">Save Videos</button>
+        </form>
+    {% else %}
+        {% if not error_message and request.method == 'POST' %}
+            <p>No videos found.</p>
+        {% endif %}
+    {% endif %}
+
+    <a href="{% url 'viewer_view' %}">Back to Home</a>
+</body>
+</html>

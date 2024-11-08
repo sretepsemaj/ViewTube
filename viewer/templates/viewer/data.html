@@ -1,41 +1,31 @@
+<!-- viewer/templates/viewer/data.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Saved Videos Data</title>
-    <style>
-        .video-box {
-            margin-top: 15px;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background-color: #f9f9f9;
-            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        .thumbnail {
-            width: 120px;
-            height: auto;
-            margin-right: 15px;
-        }
-    </style>
+    <title>Saved Videos</title>
 </head>
 <body>
-    <h1>Saved Videos Data</h1>
-
-    {% if data %}
-        {% for video in data %}
-        <div class="video-box">
-            <p><strong>Video ID:</strong> {{ video.video_id }}</p>
-            <p><strong>Title:</strong> {{ video.title }}</p>
-            <p><strong>Description:</strong> {{ video.description }}</p>
-            <p><strong>Channel:</strong> {{ video.channel_title }}</p>
-            <p><strong>Published At:</strong> {{ video.published_at }}</p>
-            <img src="{{ video.thumbnail_url }}" alt="Thumbnail" class="thumbnail">
-            <p><a href="https://www.youtube.com/watch?v={{ video.video_id }}" target="_blank">Watch Video</a></p>
-        </div>
-        {% endfor %}
+    <h1>Saved Videos</h1>
+    <form method="GET" action="{% url 'video_data' %}">
+        <label for="filter">Filter:</label>
+        <input type="text" id="filter" name="filter" value="{{ request.GET.filter }}">
+        <button type="submit">Search</button>
+    </form>
+    {% if videos %}
+        <ul>
+            {% for video in videos %}
+                <li>
+                    <img src="{{ video.thumbnail_url }}" alt="{{ video.title }}" width="120">
+                    <strong>{{ video.title }}</strong><br>
+                    {{ video.description|truncatechars:100 }}<br>
+                    Channel: {{ video.channel_title }}<br>
+                    Published at: {{ video.published_at }}
+                </li>
+            {% endfor %}
+        </ul>
     {% else %}
         <p>No videos found.</p>
     {% endif %}
+    <a href="{% url 'viewer_view' %}">Back to Home</a>
 </body>
 </html>
