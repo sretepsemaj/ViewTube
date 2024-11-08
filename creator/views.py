@@ -10,21 +10,6 @@ def creator_view(request):
 # Replace 'YOUR_API_KEY' with your actual YouTube Data API key or load from environment variables
 YOUTUBE_API_KEY = os.getenv('TUBE_API_KEY')
 
-def youtube_api_call(request):
-    youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
-
-    # Example API call: Search for videos related to "technology"
-    api_request = youtube.search().list(
-        part='snippet',
-        q='technology',
-        type='video',
-        maxResults=5  # Adjust the number as needed
-    )
-    response = api_request.execute()
-
-    # For testing, render the response in a simple HTML template
-    return render(request, 'creator/tubeapi.html', {'response': response})
-
 def youtube_comments_call(request):
     comments = []
     if request.method == 'POST':
