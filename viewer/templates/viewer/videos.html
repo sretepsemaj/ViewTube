@@ -61,7 +61,7 @@
                 </li>
             {% endfor %}
         </ul>
-        <form method="POST" action="{% url 'save_video' %}">
+        <form method="POST" action="{% url 'video_data' %}">
             {% csrf_token %}
             <button type="submit">Save Videos</button>
         </form>
@@ -71,6 +71,6 @@
         {% endif %}
     {% endif %}
 
-    <a href="{% url 'viewer_view' %}">Back to Home</a>
+    <a href="{% url 'viewer_home' %}">Back to Home</a>
 </body>
 </html>
