@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generated Stories</title>
+</head>
+<body>
+    <h1>Generated Stories from Comments</h1>
+    
+    {% if error_message %}
+        <p>{{ error_message }}</p>
+    {% else %}
+        {% for story in stories %}
+            <h2>Comment by {{ story.author }}</h2>
+            <p><strong>Published at:</strong> {{ story.published_at }}</p>
+            <p><strong>Channel URL:</strong> <a href="{{ story.channel_url }}" target="_blank">{{ story.channel_url }}</a></p>
+            <p>{{ story.generated_story }}</p>
+            <hr>
+        {% endfor %}
+    {% endif %}
+</body>
+</html>

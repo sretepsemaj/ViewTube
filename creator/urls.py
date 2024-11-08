@@ -6,6 +6,7 @@ urlpatterns = [
     path('comments/', views.youtube_comments_call, name='comments'),
     path('save-comments/', views.save_comments, name='save_comments'),
     path('data/', views.render_article_data, name='article_data'),
+    path('story/', views.story_view, name='story'),
 ]
 
 

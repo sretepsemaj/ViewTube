@@ -4,12 +4,18 @@ from googleapiclient.discovery import build
 import os
 from .models import ArticleCom
 import math
+import logging
+import groq
+from django.conf import settings
+
+logger = logging.getLogger(__name__)
 
 def creator_view(request):
     return render(request, 'creator/creathome.html')  # Use the app-specific path
 
 # Replace 'YOUR_API_KEY' with your actual YouTube Data API key or load from environment variables
 YOUTUBE_API_KEY = os.getenv('TUBE_API_KEY')
+client = groq.Client(api_key=settings.GROQ_API_KEY)
 
 def youtube_comments_call(request):
     comments = []
@@ -188,3 +194,90 @@ def data_view(request):
     # Debugging output
     print(f"Data passed to template: {data_query}")
     return render(request, 'creator/data.html', {'data': data_query})
+
+
+def story_from_articlecoms():
+    # Fetch all comments from the ArticleCom model with a token count of 300 or more
+    try:
+        article_coms = ArticleCom.objects.filter(token_count__gte=300)
+
+        if not article_coms.exists():
+            logger.warning("No comments found in ArticleCom with a sufficient token size.")
+            return None, "No comments available to generate a story."
+
+        generated_stories = []
+
+        for comment in article_coms:
+            logger.info(f"Processing Comment ID: {comment.comment_id} by {comment.author} with {comment.token_count} tokens.")
+
+            # Prepare the message payload with the comment's text display
+            messages = [
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a skilled writer for a major news station. Rewrite the following comment into a concise news story:"
+                    ),
+                },
+                {
+                    "role": "user",
+                    "content": comment.text_display,  # Use the text of the comment
+                },
+            ]
+
+            logger.info(f"Sending message content for comment ID: {comment.comment_id}")
+
+            # Make the API call
+            try:
+                completion = client.chat.completions.create(
+                    model="llama3-8b-8192",
+                    messages=messages,
+                    temperature=0.7,
+                    max_tokens=1024,  # Limit output tokens
+                    top_p=1,
+                    stream=False,  # Set to False for a single response
+                    stop=None,
+                )
+
+                # Extract the generated story from the response
+                generated_story = completion.choices[0].message.content.strip()
+
+                if not generated_story:
+                    generated_story = "No story could be generated from this comment."
+
+                logger.info(f"Story generated successfully for Comment ID: {comment.comment_id}.")
+
+                # Append the generated story and comment details, including channel URL
+                generated_stories.append({
+                    'generated_story': generated_story,
+                    'author': comment.author,
+                    'published_at': comment.published_at,
+                    'comment_id': comment.comment_id,
+                    'channel_url': comment.channel_url  # Include the channel URL
+                })
+
+            except Exception as e:
+                logger.error(f"Error generating story for Comment ID {comment.comment_id}: {str(e)}")
+                continue
+
+        if not generated_stories:
+            return None, "No stories were generated from the comments."
+
+        # Return all generated stories
+        return generated_stories, None
+
+    except Exception as e:
+        logger.error(f"Error generating stories: {str(e)}")
+        return None, f"Error: {str(e)}"
+
+def story_view(request):
+    # Fetch the generated stories and additional comment details
+    stories_data, error_message = story_from_articlecoms()
+
+    # Prepare the context for rendering the template
+    context = {
+        "stories": stories_data if stories_data else [],
+        "error_message": error_message if not stories_data else None,
+    }
+
+    # Render the `story.html` template with the generated stories and comment details
+    return render(request, "creator/story.html", context)
