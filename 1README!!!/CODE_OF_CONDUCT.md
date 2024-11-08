@@ -32,7 +32,7 @@ Project maintainers are responsible for clarifying the standards of acceptable b
 Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting the project team at [sretepsemaj@yahoo.com]. All complaints will be reviewed and investigated and will result in a response that is deemed necessary and appropriate to the circumstances. The project team is obligated to maintain confidentiality with regard to the reporter of an incident.
 
 ## Call to Action
-We stand at a pivotal moment in history where the use of AI can be transformative. This project is a testament to how collaboration and technology can come together to create something meaningful. We invite you to contribute with the intent of building an environment where ideas are respected, challenges are faced together, and progress is made through unified effort.
+We stand at a pivotal moment in history where the use of AI can be transformative. This project is a testament to how collaboration and technology can come together to create something meaningful. We invite you to contribute with the intent of building an environment where ideas are respected, challenges are faced together, and progress is made through unified effort. I have the hope that this porject will get the coding community excited about useing tech for good hopefully find those rare collabrotrs who share my vision of a better world through knowlegde and undestanding.
 
 ## Attribution
 This Code of Conduct is adapted from the [Contributor Covenant](https://www.contributor-covenant.org), version 2.1, available at [https://www.contributor-covenant.org/version/2/1/code_of_conduct.html](https://www.contributor-covenant.org/version/2/1/code_of_conduct.html).

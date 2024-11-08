@@ -1,0 +1,31 @@
+<!-- viewer/templates/viewer/data.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Saved Videos</title>
+</head>
+<body>
+    <h1>Saved Videos</h1>
+    <form method="GET" action="{% url 'video_data' %}">
+        <label for="filter">Filter:</label>
+        <input type="text" id="filter" name="filter" value="{{ request.GET.filter }}">
+        <button type="submit">Search</button>
+    </form>
+    {% if videos %}
+        <ul>
+            {% for video in videos %}
+                <li>
+                    <img src="{{ video.thumbnail_url }}" alt="{{ video.title }}" width="120">
+                    <strong>{{ video.title }}</strong><br>
+                    {{ video.description|truncatechars:100 }}<br>
+                    Channel: {{ video.channel_title }}<br>
+                    Published at: {{ video.published_at }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No videos found.</p>
+    {% endif %}
+    <a href="{% url 'viewer_view' %}">Back to Home</a>
+</body>
+</html>

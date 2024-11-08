@@ -2,11 +2,20 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Viewer Home Page</title>
+    <title>Viewer Home</title>
 </head>
 <body>
     <h1>Welcome to the Viewer Home Page</h1>
+<<<<<<< HEAD
     <p><a href="{% url 'home' %}">Back to ViewTube Home Page</a></p> 
     <p><a href="{% url 'tubeapi' %}">Back to you tube videos</a></p> <!-- Link back to the main home page -->
+=======
+    <nav>
+        <ul>
+            <li><a href="{% url 'home' %}">ViewTube Home Page</a></li>
+            <li><a href="{% url 'video' %}">Fetch YouTube videos</a></li>
+        </ul>
+    </nav>
+>>>>>>> development
 </body>
 </html>
