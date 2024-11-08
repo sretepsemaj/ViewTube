@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+from django.shortcuts import render
+import os
+from googleapiclient.discovery import build  # Add this import
+=======
 from django.shortcuts import render, redirect
 from django.conf import settings
 from .models import ArticleVid
@@ -6,6 +11,7 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 import os
 
+>>>>>>> development
 
 # This function should render the `creator_home.html` template
 def viewer_view(request):
@@ -13,6 +19,22 @@ def viewer_view(request):
 
 YOUTUBE_API_KEY = os.getenv('TUBE_API_KEY')
 
+<<<<<<< HEAD
+def youtube_api_call(request):
+    youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
+
+    # Example API call
+    api_request = youtube.search().list(
+        part='snippet',
+        q='technology',
+        type='video',
+        maxResults=5
+    )
+    response = api_request.execute()
+
+    # Pass the response data to the template
+    return render(request, 'viewer/tubeapi.html', {'response': response})
+=======
 def youtube_video_call(request):
     """
     Fetch videos from YouTube using the YouTube Data API based on a keyword search.
@@ -133,3 +155,4 @@ def render_article_data(request):
     print(f"Number of videos passed to template: {videos.count()}")
 
     return render(request, 'viewer/data.html', {'videos': videos})
+>>>>>>> development
