@@ -12,6 +12,7 @@ class ArticleCom(models.Model):
     can_rate = models.BooleanField()
     replies_count = models.IntegerField()
     token_count = models.IntegerField(null=True, blank=True)
+    sentiment_score = models.FloatField(default=0.0)  # New field for sentiment analysis
 
     def __str__(self):
-        return f"Comment by {self.author} on {self.published_at}"
+        return f"{self.author} - {self.comment_id}"

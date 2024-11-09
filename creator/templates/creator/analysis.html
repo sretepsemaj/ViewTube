@@ -1,20 +1,20 @@
-<!-- creator/templates/creator/story.html -->
+<!-- creator/templates/creator/analysis.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Generated Stories</title>
+    <title>Analysis Results</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
         }
-        .story-box {
+        .article-box {
             margin-top: 15px;
             padding: 15px;
             border: 1px solid #ddd;
             border-radius: 8px;
-            background-color: #e9ecef;
+            background-color: #f1f1f1;
             box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
         }
         .button-container {
@@ -42,7 +42,7 @@
     </style>
 </head>
 <body>
-    <h1>Generated Stories</h1>
+    <h1>Analysis Results</h1>
 
     <!-- Display Django messages -->
     {% if messages %}
@@ -55,18 +55,15 @@
         </div>
     {% endif %}
 
-    {% if stories %}
-        {% for story in stories %}
-            <div class="story-box">
-                <h2>Story {{ forloop.counter }}</h2>
-                <p>{{ story.generated_story }}</p>
-                <p><strong>Author:</strong> <a href="{{ story.channel_url }}" target="_blank">{{ story.author }}</a></p>
-                <p><strong>Published At:</strong> {{ story.published_at }}</p>
-                <p><strong>Comment ID:</strong> {{ story.comment_id }}</p>
+    {% if generated_articles %}
+        {% for article in generated_articles %}
+            <div class="article-box">
+                <h2>Article {{ forloop.counter }}</h2>
+                <p>{{ article }}</p>
             </div>
         {% endfor %}
     {% else %}
-        <p>No stories generated.</p>
+        <p>No analysis results available.</p>
     {% endif %}
 
     <div class="button-container">

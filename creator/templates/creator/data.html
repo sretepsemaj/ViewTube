@@ -2,44 +2,106 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Data View</title>
+    <title>Saved Comments Data</title>
     <style>
-        .comment-box {
-            margin-top: 15px;
-            padding: 15px;
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px;
             border: 1px solid #ddd;
-            border-radius: 8px;
-            background-color: #f9f9f9;
-            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .positive {
+            color: green;
+        }
+        .negative {
+            color: red;
+        }
+        .neutral {
+            color: orange;
+        }
+        .button-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .button {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .button:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
 <body>
-    <h1>Comments Data</h1>
-    <form method="get">
-        <input type="text" name="filter" placeholder="Search by author, text, or URL" value="{{ request.GET.filter }}">
-        <button type="submit">Search</button>
-    </form>
+    <h1>Saved Comments Data</h1>
+
+    <!-- Display Django messages -->
+    {% if messages %}
+        <div>
+            {% for message in messages %}
+                <p style="color: {% if message.tags == 'success' %}green{% elif message.tags == 'error' %}red{% else %}black{% endif %};">
+                    {{ message }}
+                </p>
+            {% endfor %}
+        </div>
+    {% endif %}
 
     {% if data %}
-        {% for comment in data %}
-        <div class="comment-box">
-            <p><strong>Comment ID:</strong> {{ comment.comment_id }}</p>
-            <p><strong>Author:</strong> {{ comment.author }}</p>
-            <p><img src="{{ comment.profile_image }}" alt="Profile Image" style="width: 50px; height: 50px; border-radius: 50%;"></p>
-            <p><strong>Channel URL:</strong> <a href="{{ comment.channel_url }}" target="_blank">{{ comment.channel_url }}</a></p>
-            <p><strong>Text:</strong> {{ comment.text_display }}</p>
-            <p><strong>Published At:</strong> {{ comment.published_at }}</p>
-            <p><strong>Like Count:</strong> {{ comment.like_count }}</p>
-            <p><strong>Viewer Rating:</strong> {{ comment.viewer_rating }}</p>
-            <p><strong>Can Rate:</strong> {{ comment.can_rate }}</p>
-            <p><strong>Replies Count:</strong> {{ comment.replies_count }}</p>
-            <p><strong>Token Count:</strong> {{ comment.token_count }}</p>
-        </div>
-        {% endfor %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Author</th>
+                    <th>Comment</th>
+                    <th>Sentiment Score</th>
+                    <th>Published At</th>
+                    <th>Likes</th>
+                    <th>Replies</th>
+                    <th>Token Count</th> <!-- Add token count to the table header -->
+                </tr>
+            </thead>
+            <tbody>
+                {% for comment in data %}
+                    <tr>
+                        <td><a href="{{ comment.channel_url }}" target="_blank">{{ comment.author }}</a></td>
+                        <td>{{ comment.text_display|safe }}</td>
+                        <td>
+                            {% if comment.sentiment_score > 0.1 %}
+                                <span class="positive">{{ comment.sentiment_score }}</span>
+                            {% elif comment.sentiment_score < -0.1 %}
+                                <span class="negative">{{ comment.sentiment_score }}</span>
+                            {% else %}
+                                <span class="neutral">{{ comment.sentiment_score }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ comment.published_at }}</td>
+                        <td>{{ comment.like_count }}</td>
+                        <td>{{ comment.replies_count }}</td>
+                        <td>{{ comment.token_count }}</td> <!-- Display token count for each comment -->
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     {% else %}
-        <p>No data found.</p>
+        <p>No saved comments to display.</p>
     {% endif %}
-    <a href="{% url 'creator_home' %}">Back to Home</a>
+
+    <div class="button-container">
+        <a href="{% url 'comments' %}" class="button">Back to Comments</a>
+    </div>
 </body>
 </html>
