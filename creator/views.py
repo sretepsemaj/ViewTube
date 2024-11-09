@@ -269,7 +269,7 @@ def save_comments(request):
         return redirect('data_view')  # Ensure this matches your URL name
 
     messages.error(request, "No comments to save or invalid request.")
-    return redirect('comments')  # Redirect back if no comments are found or if not a POST request
+    return redirect('save_comments')  # Redirect back if no comments are found or if not a POST request
 
 # View to delete all comments
 def delete_all_articlecom(request):
@@ -296,12 +296,67 @@ def analyze_comments(request):
     return redirect('comments')
 
 # View to generate and render stories from high-token comments
+def story_from_articlecoms():
+    # Filter comments with 200 or more tokens
+    article_coms = ArticleCom.objects.filter(token_count__gte=200)
+    
+    if not article_coms.exists():
+        return [], "No comments found with a sufficient token size to generate stories."
+
+    generated_stories = []
+
+    for comment in article_coms:
+        try:
+            # Create the message payload for the Groq API
+            messages = [
+                {
+                    "role": "system",
+                    "content": "take the comments and make a list of all the points the viewer makes in the comment section:"
+                },
+                {
+                    "role": "user",
+                    "content": comment.text_display
+                }
+            ]
+
+            # Send to Groq or equivalent for processing
+            completion = client.chat.completions.create(
+                model="llama3-8b-8192",
+                messages=messages,
+                temperature=0.7,
+                max_tokens=1024,
+                top_p=1
+            )
+
+            # Extract the generated story from the response
+            generated_story = completion.choices[0].message.content.strip()
+
+            # Append the generated story and relevant comment information
+            generated_stories.append({
+                'generated_story': generated_story,
+                'author': comment.author,
+                'published_at': comment.published_at.strftime('%Y-%m-%d %H:%M'),
+                'comment_id': comment.comment_id,
+                'channel_url': comment.channel_url
+            })
+
+        except Exception as e:
+            logger.error(f"Error generating story for Comment ID {comment.comment_id}: {str(e)}")
+            continue  # Continue processing the next comments even if one fails
+
+    if not generated_stories:
+        return [], "Stories were generated, but all were empty."
+
+    return generated_stories, None
+
+# View to generate and render stories from comments with 200+ tokens
 def story_view(request):
     if request.method == 'POST' and 'generate_stories' in request.POST:
+        # Get generated stories and any error messages
         stories_data, error_message = story_from_articlecoms()
 
         if stories_data:
-            messages.success(request, "Stories generated successfully.")
+            messages.success(request, f"{len(stories_data)} stories generated successfully.")
         elif error_message:
             messages.error(request, error_message)
 
@@ -324,3 +379,28 @@ def render_article_data(request):
     else:
         messages.info(request, "No data to calculate average.")
     return render(request, 'creator/data.html', {'data': articles})
+
+def sentiment_analysis_view(request):
+    # Retrieve sentiment scores from the database
+    comments = ArticleCom.objects.all()
+    positive_count = comments.filter(sentiment_score__gt=0.1).count()
+    neutral_count = comments.filter(sentiment_score__lte=0.1, sentiment_score__gte=-0.1).count()
+    negative_count = comments.filter(sentiment_score__lt=-0.1).count()
+
+    total_comments = comments.count()
+    if total_comments > 0:
+        positive_percentage = (positive_count / total_comments) * 100
+        neutral_percentage = (neutral_count / total_comments) * 100
+        negative_percentage = (negative_count / total_comments) * 100
+        average_sentiment = sum(comment.sentiment_score for comment in comments) / total_comments
+    else:
+        positive_percentage = neutral_percentage = negative_percentage = average_sentiment = 0
+
+    context = {
+        'positive_percentage': positive_percentage,
+        'neutral_percentage': neutral_percentage,
+        'negative_percentage': negative_percentage,
+        'total_comments': total_comments,
+        'average_sentiment': average_sentiment
+    }
+    return render(request, 'creator/analysis.html', context)

@@ -1,3 +1,4 @@
+<!-- creator/templates/creator/data.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -30,25 +31,53 @@
             color: orange;
         }
         .button-container {
-            margin-top: 20px;
+            margin-bottom: 20px;
             text-align: center;
         }
-        .button {
+        .button, .analyze-button, .story-button {
             display: inline-block;
             margin: 10px;
             padding: 10px 20px;
-            background-color: #007bff;
             color: white;
             text-decoration: none;
             border-radius: 5px;
+            cursor: pointer;
+        }
+        .button {
+            background-color: #007bff;
         }
         .button:hover {
             background-color: #0056b3;
+        }
+        .analyze-button {
+            background-color: #28a745; /* Green color */
+        }
+        .analyze-button:hover {
+            background-color: #218838;
+        }
+        .story-button {
+            background-color: #17a2b8; /* Teal color */
+        }
+        .story-button:hover {
+            background-color: #138496;
         }
     </style>
 </head>
 <body>
     <h1>Saved Comments Data</h1>
+
+    <!-- Form buttons for actions -->
+    <div class="button-container">
+        <form method="post" action="{% url 'sentiment_analysis' %}">
+                {% csrf_token %}
+                <button type="submit" class="analyze-button">View Sentiment Analysis</button>
+        </form>
+        <form method="post" action="{% url 'story_view' %}" style="display: inline;">
+            {% csrf_token %}
+            <button type="submit" name="generate_stories" class="story-button">Generate Stories</button>
+        </form>
+        <a href="{% url 'comments' %}" class="button">Back to Comments</a>
+    </div>
 
     <!-- Display Django messages -->
     {% if messages %}
@@ -71,7 +100,7 @@
                     <th>Published At</th>
                     <th>Likes</th>
                     <th>Replies</th>
-                    <th>Token Count</th> <!-- Add token count to the table header -->
+                    <th>Token Count</th>
                 </tr>
             </thead>
             <tbody>
@@ -91,7 +120,7 @@
                         <td>{{ comment.published_at }}</td>
                         <td>{{ comment.like_count }}</td>
                         <td>{{ comment.replies_count }}</td>
-                        <td>{{ comment.token_count }}</td> <!-- Display token count for each comment -->
+                        <td>{{ comment.token_count }}</td>
                     </tr>
                 {% endfor %}
             </tbody>
@@ -99,9 +128,5 @@
     {% else %}
         <p>No saved comments to display.</p>
     {% endif %}
-
-    <div class="button-container">
-        <a href="{% url 'comments' %}" class="button">Back to Comments</a>
-    </div>
 </body>
 </html>

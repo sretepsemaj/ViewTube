@@ -40,31 +40,17 @@
         form {
             margin-bottom: 20px;
         }
-        .delete-button, .analyze-button, .story-button {
+        .delete-button {
             padding: 10px 20px;
+            background-color: red;
+            color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             margin-bottom: 20px;
-            color: white;
-        }
-        .delete-button {
-            background-color: red;
         }
         .delete-button:hover {
             background-color: darkred;
-        }
-        .analyze-button {
-            background-color: #28a745; /* Green color */
-        }
-        .analyze-button:hover {
-            background-color: #218838;
-        }
-        .story-button {
-            background-color: #17a2b8; /* Teal color */
-        }
-        .story-button:hover {
-            background-color: #138496;
         }
         .debug-info {
             color: #666;
@@ -102,23 +88,10 @@
 
     {% if comments %}
         <p class="debug-info">Debug: {{ comments|length }} comments found.</p>
-        
         <!-- Form for saving comments to the database -->
         <form method="post" action="{% url 'save_comments' %}">
             {% csrf_token %}
-            <button type="submit" name="save_comments" class="analyze-button">Save and View Saved Data</button>
-        </form>
-
-        <!-- Form for analyzing comments -->
-        <form method="post" action="{% url 'analyze_comments' %}">
-            {% csrf_token %}
-            <button type="submit" name="analyze_comments" class="analyze-button">Analyze Comments</button>
-        </form>
-
-        <!-- Form for generating stories -->
-        <form method="post" action="{% url 'story_view' %}">
-            {% csrf_token %}
-            <button type="submit" name="generate_stories" class="story-button">Generate Stories</button>
+            <button type="submit" name="save_comments">Save and View Saved Data</button>
         </form>
 
         {% for comment in comments %}

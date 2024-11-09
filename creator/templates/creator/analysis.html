@@ -1,74 +1,76 @@
-<!-- creator/templates/creator/analysis.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Analysis Results</title>
+    <title>Sentiment Analysis</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh; /* Full viewport height */
+            flex-direction: column;
+            overflow: hidden; /* Hide any scrollbars */
         }
-        .article-box {
-            margin-top: 15px;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background-color: #f1f1f1;
-            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+        #sentimentChart {
+            width: 200px; /* Smaller width and height */
+            height: 200px;
+            margin-top: 20px; /* Space above the chart */
         }
-        .button-container {
-            margin-top: 20px;
-            text-align: center;
+        .content {
+            text-align: center; /* Center the text */
+            margin-top: -50px; /* Adjust top margin to pull content up */
         }
-        .button {
+        .sentiment-legend {
+            margin-top: 20px; /* Space below the chart */
+        }
+        .legend-item {
+            margin: 5px 0;
+        }
+        .legend-color {
             display: inline-block;
-            margin: 10px;
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-        }
-        .button:hover {
-            background-color: #0056b3;
-        }
-        .button-secondary {
-            background-color: #6c757d;
-        }
-        .button-secondary:hover {
-            background-color: #5a6268;
+            width: 15px;
+            height: 15px;
+            margin-right: 5px;
         }
     </style>
 </head>
 <body>
-    <h1>Analysis Results</h1>
+    <div class="content">
+        <h1>Sentiment Analysis Summary</h1>
+        <p>Total Comments: {{ total_comments }}</p>
+        <p>Average Sentiment Score: {{ average_sentiment|floatformat:2 }}</p>
+        <p>Total Sentiment Score: {{ total_sentiment }}</p>
 
-    <!-- Display Django messages -->
-    {% if messages %}
-        <div>
-            {% for message in messages %}
-                <p style="color: {% if message.tags == 'success' %}green{% elif message.tags == 'error' %}red{% else %}black{% endif %};">
-                    {{ message }}
-                </p>
-            {% endfor %}
+        <canvas id="sentimentChart"></canvas>
+
+        <!-- Sentiment score explanation -->
+        <div class="sentiment-legend">
+            <p class="legend-item"><span class="legend-color" style="background-color: green;"></span>Positive: Sentiment Score > 0.1</p>
+            <p class="legend-item"><span class="legend-color" style="background-color: orange;"></span>Neutral: Sentiment Score between -0.1 and 0.1</p>
+            <p class="legend-item"><span class="legend-color" style="background-color: red;"></span>Negative: Sentiment Score < -0.1</p>
         </div>
-    {% endif %}
-
-    {% if generated_articles %}
-        {% for article in generated_articles %}
-            <div class="article-box">
-                <h2>Article {{ forloop.counter }}</h2>
-                <p>{{ article }}</p>
-            </div>
-        {% endfor %}
-    {% else %}
-        <p>No analysis results available.</p>
-    {% endif %}
-
-    <div class="button-container">
-        <a href="{% url 'comments' %}" class="button button-secondary">Back to Comments</a>
-        <a href="{% url 'data_view' %}" class="button">View Saved Data</a>
     </div>
+
+    <script>
+        var ctx = document.getElementById('sentimentChart').getContext('2d');
+        var sentimentChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Positive', 'Neutral', 'Negative'],
+                datasets: [{
+                    data: [{{ positive_percentage }}, {{ neutral_percentage }}, {{ negative_percentage }}],
+                    backgroundColor: ['green', 'orange', 'red']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true
+            }
+        });
+    </script>
 </body>
 </html>
