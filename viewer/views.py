@@ -14,7 +14,8 @@ YOUTUBE_API_KEY = os.getenv('TUBE_API_KEY')
 
 def youtube_video_call(request):
     """
-    Fetch videos from YouTube using the YouTube Data API based on a keyword search.
+    Fetch videos from YouTube using the YouTube Data API based on a keyword search
+    and retrieve full descriptions.
     """
     videos = []
     error_message = None
@@ -28,38 +29,44 @@ def youtube_video_call(request):
                 youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
                 print("YouTube API client built successfully.")  # Debug: Confirm API client creation
 
-                # Make the API call to search for videos based on the keyword
-                api_request = youtube.search().list(
-                    part='snippet',
+                # Make the initial API call to search for video IDs based on the keyword
+                search_response = youtube.search().list(
+                    part='id',
                     q=query,
-                    maxResults=10,  # Number of videos to retrieve
+                    maxResults=50,  # Number of videos to retrieve
                     type='video',  # Ensure only videos are returned
                     order='relevance'  # Order by relevance to the query
-                )
-                print("API request prepared:", api_request)  # Debug: Log the API request details
+                ).execute()
 
-                response = api_request.execute()
-                print("API Response:", response)  # Debug: Log the entire API response
+                video_ids = [item['id']['videoId'] for item in search_response.get('items', [])]
+                print(f"Video IDs found: {video_ids}")  # Debug: Log video IDs found
 
-                for item in response.get('items', []):
-                    video = {
-                        'video_id': item['id']['videoId'],
-                        'title': item['snippet']['title'],
-                        'description': item['snippet']['description'],
-                        'channel_title': item['snippet']['channelTitle'],
-                        'published_at': item['snippet']['publishedAt'],
-                        'thumbnail_url': item['snippet']['thumbnails']['high']['url']
-                    }
-                    print(f"Processed video: {video['title']} (ID: {video['video_id']})")  # Debug: Log each video processed
-                    videos.append(video)
+                if video_ids:
+                    # Make the second API call to get full details of the videos
+                    video_response = youtube.videos().list(
+                        part='snippet',
+                        id=','.join(video_ids)
+                    ).execute()
 
-                if not videos:
-                    error_message = "No videos found for the given keyword."
-                    print(error_message)  # Debug: Log if no videos are found
+                    for item in video_response.get('items', []):
+                        video = {
+                            'video_id': item['id'],
+                            'title': item['snippet']['title'],
+                            'description': item['snippet']['description'],  # Full description
+                            'channel_title': item['snippet']['channelTitle'],
+                            'published_at': item['snippet']['publishedAt'],
+                            'thumbnail_url': item['snippet']['thumbnails']['high']['url']
+                        }
+                        print(f"Processed video: {video['title']} (ID: {video['video_id']})")  # Debug: Log each video processed
+                        videos.append(video)
 
-                # Save videos to session for further processing if needed
-                request.session['videos'] = videos
-                print(f"Saved {len(videos)} videos to session.")  # Debug: Log the number of videos saved
+                    if not videos:
+                        error_message = "No videos found for the given keyword."
+                        print(error_message)  # Debug: Log if no videos are found
+
+                    # Save videos to session for further processing if needed
+                    request.session['videos'] = videos
+                    print(f"Saved {len(videos)} videos to session.")  # Debug: Log the number of videos saved
 
             except HttpError as e:
                 error_message = f"An HTTP error occurred: {e.resp.status} - {e.content}"
@@ -77,7 +84,7 @@ def youtube_video_call(request):
         'query': request.POST.get('query', '')  # Preserve the search query in the form
     }
     return render(request, 'viewer/videos.html', context)
-
+    
 def save_video(request):
     if request.method == 'POST' and request.session.get('videos'):
         videos_data = request.session['videos']

@@ -7,6 +7,10 @@ import math
 import logging
 import groq
 from django.conf import settings
+from django.contrib import messages
+from django.db.models import Avg
+from googleapiclient.errors import HttpError
+
 
 logger = logging.getLogger(__name__)
 
@@ -17,134 +21,69 @@ def creator_view(request):
 YOUTUBE_API_KEY = os.getenv('TUBE_API_KEY')
 client = groq.Client(api_key=settings.GROQ_API_KEY)
 
+def estimate_tokens(text):
+    word_count = len(text.split())
+    return math.ceil(word_count * 1.33)
+
+# Fetch and display comments
 def youtube_comments_call(request):
     comments = []
-    if request.method == 'POST':
+    if request.method == 'POST' and 'fetch_comments' in request.POST:
         video_id = request.POST.get('video_id')
-
         if video_id:
             youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
+            try:
+                api_request = youtube.commentThreads().list(
+                    part='snippet',
+                    videoId=video_id,
+                    maxResults=100
+                )
+                response = api_request.execute()
 
-            # Initial API request to get the first page of comments
-            api_request = youtube.commentThreads().list(
-                part='snippet',
-                videoId=video_id,
-                maxResults=100  # Set to 100 as this is the maximum per API call
-            )
-            response = api_request.execute()
+                while response:
+                    for item in response.get('items', []):
+                        comment_data = item['snippet']['topLevelComment']['snippet']
+                        comment = {
+                            'comment_id': item['id'],
+                            'author': comment_data.get('authorDisplayName', ''),
+                            'profile_image': comment_data.get('authorProfileImageUrl', ''),
+                            'channel_url': comment_data.get('authorChannelUrl', ''),
+                            'text_display': comment_data.get('textDisplay', ''),
+                            'published_at': comment_data.get('publishedAt', ''),
+                            'like_count': comment_data.get('likeCount', 0),
+                            'viewer_rating': comment_data.get('viewerRating', 'none'),
+                            'can_rate': comment_data.get('canRate', False),
+                            'replies_count': item.get('snippet', {}).get('totalReplyCount', 0)
+                        }
+                        comments.append(comment)
 
-            # Append the first page of comments
-            while response:
-                for item in response.get('items', []):
-                    comment_data = item['snippet']['topLevelComment']['snippet']
-                    comment = {
-                        'comment_id': item['id'],
-                        'author': comment_data.get('authorDisplayName', ''),
-                        'profile_image': comment_data.get('authorProfileImageUrl', ''),
-                        'channel_url': comment_data.get('authorChannelUrl', ''),
-                        'text_display': comment_data.get('textDisplay', ''),
-                        'published_at': comment_data.get('publishedAt', ''),
-                        'like_count': comment_data.get('likeCount', 0),
-                        'viewer_rating': comment_data.get('viewerRating', 'none'),
-                        'can_rate': comment_data.get('canRate', False),
-                        'replies_count': item.get('snippet', {}).get('totalReplyCount', 0)
-                    }
-                    comments.append(comment)
+                    if 'nextPageToken' in response:
+                        api_request = youtube.commentThreads().list(
+                            part='snippet',
+                            videoId=video_id,
+                            maxResults=100,
+                            pageToken=response['nextPageToken']
+                        )
+                        response = api_request.execute()
+                    else:
+                        break
 
-                # Check if there is a next page of comments
-                if 'nextPageToken' in response:
-                    api_request = youtube.commentThreads().list(
-                        part='snippet',
-                        videoId=video_id,
-                        maxResults=100,  # Maximum number of results per page
-                        pageToken=response['nextPageToken']
-                    )
-                    response = api_request.execute()
-                else:
-                    break
-
-            # Save comments to session for further processing
-            request.session['comments'] = comments
+                request.session['comments'] = comments
+                messages.success(request, f"{len(comments)} comments fetched successfully.")
+            except HttpError as e:
+                messages.error(request, f"An HTTP error occurred: {e.resp.status} - {e.content}")
+            except Exception as e:
+                messages.error(request, f"An error occurred: {str(e)}")
 
     return render(request, 'creator/comments.html', {'comments': comments})
 
-#def save_comments(request):
-    if request.method == 'POST' and request.session.get('comments'):
-        comments_data = request.session['comments']
-        saved_count = 0
-
-        for comment in comments_data:
-            print(f"Attempting to save comment: {comment['comment_id']} by {comment['author']}")
-            try:
-                if not ArticleCom.objects.filter(comment_id=comment['comment_id']).exists():
-                    ArticleCom.objects.create(
-                        comment_id=comment['comment_id'],
-                        author=comment['author'],
-                        profile_image=comment['profile_image'],
-                        channel_url=comment['channel_url'],
-                        text_display=comment['text_display'],
-                        published_at=comment['published_at'],
-                        like_count=comment['like_count'],
-                        viewer_rating=comment.get('viewer_rating', 'none'),
-                        can_rate=comment['can_rate'],
-                        replies_count=comment.get('replies_count', 0)
-                    )
-                    saved_count += 1
-                    print(f"Comment {comment['comment_id']} saved successfully.")
-                else:
-                    print(f"Comment {comment['comment_id']} already exists. Skipping.")
-            except Exception as e:
-                print(f"Error saving comment {comment['comment_id']}: {e}")
-
-        print(f"Total comments saved: {saved_count}")
-        return redirect('article_data')  # Replace with the correct name of your data view
-
-    return render(request, 'creator/save_comments.html')
-
-#def data_view(request):
-    filter_param = request.GET.get('filter', '')
-    data_query = ArticleCom.objects.all()
-
-    if filter_param:
-        data_query = data_query.filter(
-            Q(author__icontains=filter_param) | 
-            Q(text_display__icontains=filter_param) | 
-            Q(channel_url__icontains=filter_param)
-        )
-
-    # Debugging output
-    print(f"Data passed to template: {data_query}")
-
-    return render(request, 'creator/data.html', {'data': data_query})
-
-#def render_article_data(request):
-    """
-    Render all articles from the ArticleCom model to the data.html template.
-    """
-    articles = ArticleCom.objects.all()  # Query all article comments
-    # Debug output to verify the number of articles
-    print(f"Number of articles passed to template: {articles.count()}")
-
-    return render(request, 'creator/data.html', {'data': articles})
-
-
-def estimate_tokens(text):
-    """
-    Estimate the number of tokens in the given text.
-    """
-    word_count = len(text.split())
-    return math.ceil(word_count * 1.33)  # Rough estimation: 1.33 tokens per word
-
+# Save fetched comments to the database
 def save_comments(request):
     if request.method == 'POST' and request.session.get('comments'):
         comments_data = request.session['comments']
         saved_count = 0
 
         for comment in comments_data:
-            # Estimate token size for each comment's text
-            token_count = estimate_tokens(comment['text_display'])
-
-            print(f"Attempting to save comment: {comment['comment_id']} by {comment['author']}, Tokens: {token_count}")
             try:
                 if not ArticleCom.objects.filter(comment_id=comment['comment_id']).exists():
                     ArticleCom.objects.create(
@@ -158,42 +97,37 @@ def save_comments(request):
                         viewer_rating=comment.get('viewer_rating', 'none'),
                         can_rate=comment['can_rate'],
                         replies_count=comment.get('replies_count', 0),
-                        token_count=token_count  # Assuming you add a `token_count` field to the model
+                        token_count=estimate_tokens(comment['text_display'])
                     )
                     saved_count += 1
-                    print(f"Comment {comment['comment_id']} saved successfully.")
-                else:
-                    print(f"Comment {comment['comment_id']} already exists. Skipping.")
             except Exception as e:
-                print(f"Error saving comment {comment['comment_id']}: {e}")
+                messages.error(request, f"Error saving comment {comment['comment_id']}: {e}")
 
-        print(f"Total comments saved: {saved_count}")
-        return redirect('article_data')  # Replace with the correct name of your data view
+        if saved_count > 0:
+            messages.success(request, f"{saved_count} comments saved successfully.")
+        else:
+            messages.info(request, "No new comments were saved.")
 
-    return render(request, 'creator/save_comments.html')
+        # Redirect to a page showing saved data or the comments page
+        return redirect('article_data')  # Replace 'data_view' with the name of your view that shows saved data
 
+    messages.error(request, "No comments to save or invalid request.")
+    return redirect('comments')  # Redirect back if no comments are found or if not a POST request
+
+# Delete all entries in ArticleCom
+def delete_all_articlecom(request):
+    if request.method == 'POST':
+        ArticleCom.objects.all().delete()
+        messages.success(request, "All records in ArticleCom have been successfully deleted.")
+        return redirect('comments')
+
+# Render all articles sorted by token count
 def render_article_data(request):
-    """
-    Render all articles from the ArticleCom model to the data.html template.
-    """
-    articles = ArticleCom.objects.all().order_by('-token_count')  # Sort by token count descending
-    print(f"Number of articles passed to template: {articles.count()}")
+    articles = ArticleCom.objects.all().order_by('-token_count')
+    average_tokens = articles.aggregate(Avg('token_count'))['token_count__avg']
+    messages.info(request, f"Average token size: {average_tokens:.2f}" if average_tokens else "No data to calculate average.")
     return render(request, 'creator/data.html', {'data': articles})
 
-def data_view(request):
-    filter_param = request.GET.get('filter', '')
-    data_query = ArticleCom.objects.all().order_by('-token_count')  # Sort by token count descending
-
-    if filter_param:
-        data_query = data_query.filter(
-            Q(author__icontains=filter_param) | 
-            Q(text_display__icontains=filter_param) | 
-            Q(channel_url__icontains=filter_param)
-        )
-
-    # Debugging output
-    print(f"Data passed to template: {data_query}")
-    return render(request, 'creator/data.html', {'data': data_query})
 
 
 def story_from_articlecoms():

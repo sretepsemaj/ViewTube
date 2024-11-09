@@ -7,6 +7,5 @@ urlpatterns = [
     path('save-comments/', views.save_comments, name='save_comments'),
     path('data/', views.render_article_data, name='article_data'),
     path('story/', views.story_view, name='story'),
+    path('comments/delete/', views.delete_all_articlecom, name='delete_all_articlecom'),
 ]
-
-
