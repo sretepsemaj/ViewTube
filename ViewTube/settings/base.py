@@ -121,3 +121,52 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+MYSK_API_KEY = os.getenv('MYSK_API_KEY')
+PLEX_API_KEY = os.getenv('PLEX_API_KEY')
+GROQ_API_KEY = os.getenv('GROQ_API_KEY')
+HUGG_API_KEY = os.getenv('HUGG_API_KEY')
+NEWS_API_KEY = os.getenv('NEWS_API_KEY')
+
+# Load API URLs from .env
+HUGG_API_URL = os.getenv('HUGG_API_URL')
+PLEX_API_URL = os.getenv('PLEX_API_URL')
+
+# Where session data is stored
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Use database to store session data
+
+# Cookie settings for sessions
+SESSION_COOKIE_NAME = 'sessionid'  # Default cookie name
+SESSION_COOKIE_AGE = 7200  # 2 weeks in seconds
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Do not expire when the browser is closed
+SESSION_SAVE_EVERY_REQUEST = False  # Only save the session if it's modified
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': 'django_info.log',
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'broadcast': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}
