@@ -1,23 +1,77 @@
+<!-- creator/templates/creator/story.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Generated Stories</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .story-box {
+            margin-top: 15px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #e9ecef;
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .button-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .button {
+            display: inline-block;
+            margin: 10px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .button-secondary {
+            background-color: #6c757d;
+        }
+        .button-secondary:hover {
+            background-color: #5a6268;
+        }
+    </style>
 </head>
 <body>
-    <h1>Generated Stories from Comments</h1>
-    
-    {% if error_message %}
-        <p>{{ error_message }}</p>
-    {% else %}
-        {% for story in stories %}
-            <h2>Comment by {{ story.author }}</h2>
-            <p><strong>Published at:</strong> {{ story.published_at }}</p>
-            <p><strong>Channel URL:</strong> <a href="{{ story.channel_url }}" target="_blank">{{ story.channel_url }}</a></p>
-            <p>{{ story.generated_story }}</p>
-            <hr>
-        {% endfor %}
+    <h1>Generated Stories</h1>
+
+    <!-- Display Django messages -->
+    {% if messages %}
+        <div>
+            {% for message in messages %}
+                <p style="color: {% if message.tags == 'success' %}green{% elif message.tags == 'error' %}red{% else %}black{% endif %};">
+                    {{ message }}
+                </p>
+            {% endfor %}
+        </div>
     {% endif %}
+
+    {% if stories %}
+        {% for story in stories %}
+            <div class="story-box">
+                <h2>Story {{ forloop.counter }}</h2>
+                <p>{{ story.generated_story }}</p>
+                <p><strong>Author:</strong> <a href="{{ story.channel_url }}" target="_blank">{{ story.author }}</a></p>
+                <p><strong>Published At:</strong> {{ story.published_at }}</p>
+                <p><strong>Comment ID:</strong> {{ story.comment_id }}</p>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No stories generated.</p>
+    {% endif %}
+
+    <div class="button-container">
+        <a href="{% url 'comments' %}" class="button button-secondary">Back to Comments</a>
+        <a href="{% url 'data_view' %}" class="button">View Saved Data</a>
+    </div>
 </body>
 </html>

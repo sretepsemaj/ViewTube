@@ -1,3 +1,4 @@
+<!-- creator/templates/creator/comments.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -39,6 +40,18 @@
         form {
             margin-bottom: 20px;
         }
+        .delete-button {
+            padding: 10px 20px;
+            background-color: red;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        .delete-button:hover {
+            background-color: darkred;
+        }
         .debug-info {
             color: #666;
             margin-bottom: 15px;
@@ -47,21 +60,38 @@
 </head>
 <body>
     <h1>Comments Details</h1>
-    
+
+    <!-- Display Django messages -->
+    {% if messages %}
+        <div>
+            {% for message in messages %}
+                <p style="color: {% if message.tags == 'success' %}green{% elif message.tags == 'error' %}red{% else %}black{% endif %};">
+                    {{ message }}
+                </p>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Button to delete all comments -->
+    <form method="post" action="{% url 'delete_all_articlecom' %}">
+        {% csrf_token %}
+        <button type="submit" class="delete-button">Delete All Comments</button>
+    </form>
+
     <!-- Form for inputting the video ID -->
     <form method="post">
         {% csrf_token %}
         <label for="video_id">Enter YouTube Video ID:</label>
         <input type="text" name="video_id" id="video_id" required>
-        <button type="submit">Fetch Comments</button>
+        <button type="submit" name="fetch_comments">Fetch Comments</button>
     </form>
-    
+
     {% if comments %}
         <p class="debug-info">Debug: {{ comments|length }} comments found.</p>
         <!-- Form for saving comments to the database -->
         <form method="post" action="{% url 'save_comments' %}">
             {% csrf_token %}
-            <button type="submit">Save and View Saved Data</button>
+            <button type="submit" name="save_comments">Save and View Saved Data</button>
         </form>
 
         {% for comment in comments %}

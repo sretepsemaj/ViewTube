@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sentiment Analysis</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh; /* Full viewport height */
+            flex-direction: column;
+            overflow: hidden; /* Hide any scrollbars */
+        }
+        #sentimentChart {
+            width: 200px; /* Smaller width and height */
+            height: 200px;
+            margin-top: 20px; /* Space above the chart */
+        }
+        .content {
+            text-align: center; /* Center the text */
+            margin-top: -50px; /* Adjust top margin to pull content up */
+        }
+        .sentiment-legend {
+            margin-top: 20px; /* Space below the chart */
+        }
+        .legend-item {
+            margin: 5px 0;
+        }
+        .legend-color {
+            display: inline-block;
+            width: 15px;
+            height: 15px;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="content">
+        <h1>Sentiment Analysis Summary</h1>
+        <p>Total Comments: {{ total_comments }}</p>
+        <p>Average Sentiment Score: {{ average_sentiment|floatformat:2 }}</p>
+        <p>Total Sentiment Score: {{ total_sentiment }}</p>
+
+        <canvas id="sentimentChart"></canvas>
+
+        <!-- Sentiment score explanation -->
+        <div class="sentiment-legend">
+            <p class="legend-item"><span class="legend-color" style="background-color: green;"></span>Positive: Sentiment Score > 0.1</p>
+            <p class="legend-item"><span class="legend-color" style="background-color: orange;"></span>Neutral: Sentiment Score between -0.1 and 0.1</p>
+            <p class="legend-item"><span class="legend-color" style="background-color: red;"></span>Negative: Sentiment Score < -0.1</p>
+        </div>
+    </div>
+
+    <script>
+        var ctx = document.getElementById('sentimentChart').getContext('2d');
+        var sentimentChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Positive', 'Neutral', 'Negative'],
+                datasets: [{
+                    data: [{{ positive_percentage }}, {{ neutral_percentage }}, {{ negative_percentage }}],
+                    backgroundColor: ['green', 'orange', 'red']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true
+            }
+        });
+    </script>
+</body>
+</html>
