@@ -1,17 +1,58 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>{{ video.title }}</title>
+    <title>Video ID Search Result</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .video-details {
+            max-width: 800px;
+        }
+        .error {
+            color: red;
+        }
+    </style>
 </head>
 <body>
-    <h1>{{ video.title }}</h1>
-    <p><strong>Channel:</strong> {{ video.channel_title }}</p>
-    <p><strong>Published At:</strong> {{ video.published_at }}</p>
-    <p>{{ video.description }}</p>
-    <img src="{{ video.thumbnail_url }}" alt="Video Thumbnail">
-    <p><strong>Views:</strong> {{ video.view_count }}</p>
-    <p><strong>Likes:</strong> {{ video.like_count }}</p>
-    <p><strong>Dislikes:</strong> {{ video.dislike_count }}</p>
+    <h1>Video ID Search Result</h1>
+
+    {% if error_message %}
+        <p class="error">{{ error_message }}</p>
+    {% endif %}
+
+    {% if videos %}
+        <div class="video-details">
+            {% for video in videos %}
+                <h2>{{ video.title }}</h2>
+                <p><strong>Video ID:</strong> {{ video.video_id }}</p>
+                <p><strong>Channel:</strong> {{ video.channel_title }}</p>
+                <p><strong>Channel ID:</strong> {{ video.channel_id }}</p>
+                <p><strong>Published At:</strong> {{ video.published_at|date:"F d, Y H:i" }}</p>
+                <p><strong>Description:</strong> {{ video.description }}</p>
+                <p><strong>Default Audio Language:</strong> {{ video.default_audio_language }}</p>
+                <p><strong>Tags:</strong> {{ video.tags|join:", " }}</p>
+                <p><strong>Category ID:</strong> {{ video.category_id }}</p>
+                <p><strong>View Count:</strong> {{ video.view_count }}</p>
+                <p><strong>Like Count:</strong> {{ video.like_count }}</p>
+                <p><strong>Comment Count:</strong> {{ video.comment_count }}</p>
+                <p><strong>Live Broadcast Content:</strong> {{ video.live_broadcast_content }}</p>
+                <img src="{{ video.thumbnail_url }}" alt="{{ video.title }}">
+                <br><br>
+                <a href="https://www.youtube.com/watch?v={{ video.video_id }}" target="_blank">Watch on YouTube</a>
+
+                <!-- Form to trigger caption download -->
+                <form method="POST" action="{% url 'download_caption' video.video_id %}">
+                    {% csrf_token %}
+                    <button type="submit">Download Captions</button>
+                </form>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>No video found.</p>
+    {% endif %}
+
+    <a href="{% url 'viewer_home' %}">Back to Home</a>
 </body>
 </html>

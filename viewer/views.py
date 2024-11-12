@@ -46,13 +46,37 @@ def youtube_video_call(request):
 
                 if response.get('items'):
                     video = response['items'][0]
+                    # Extract all relevant fields from the response
+                    title = video['snippet'].get('title', 'N/A')
+                    channel_title = video['snippet'].get('channelTitle', 'N/A')
+                    channel_id = video['snippet'].get('channelId', 'N/A')
+                    published_at = video['snippet'].get('publishedAt', 'N/A')
+                    description = video['snippet'].get('description', 'N/A')
+                    default_audio_language = video['snippet'].get('defaultAudioLanguage', 'N/A')
+                    tags = video['snippet'].get('tags', [])
+                    category_id = video['snippet'].get('categoryId', 'N/A')
+                    view_count = video['statistics'].get('viewCount', 'N/A')
+                    like_count = video['statistics'].get('likeCount', 'N/A')
+                    comment_count = video['statistics'].get('commentCount', 'N/A')
+                    live_broadcast_content = video['snippet'].get('liveBroadcastContent', 'N/A')
+                    thumbnail_url = video['snippet']['thumbnails']['high']['url']
+
+                    # Add the extracted data to the context
                     videos.append({
-                        'video_id': video['id'],
-                        'title': video['snippet']['title'],
-                        'description': video['snippet']['description'],
-                        'channel_title': video['snippet']['channelTitle'],
-                        'published_at': video['snippet']['publishedAt'],
-                        'thumbnail_url': video['snippet']['thumbnails']['high']['url'],
+                        'video_id': video_id,
+                        'title': title,
+                        'channel_title': channel_title,
+                        'channel_id': channel_id,
+                        'published_at': published_at,
+                        'description': description,
+                        'default_audio_language': default_audio_language,
+                        'tags': tags,
+                        'category_id': category_id,
+                        'view_count': view_count,
+                        'like_count': like_count,
+                        'comment_count': comment_count,
+                        'live_broadcast_content': live_broadcast_content,
+                        'thumbnail_url': thumbnail_url
                     })
                 else:
                     error_message = "Video not found."
@@ -92,9 +116,7 @@ def youtube_video_call(request):
 
     context = {
         'videos': videos,
-        'error_message': error_message,
-        'query': query,
-        'video_id': video_id
+        'error_message': error_message
     }
 
     # Render different templates based on search type
@@ -224,16 +246,3 @@ def render_article_data(request):
 
     return render(request, 'viewer/data.html', {'videos': videos})
 
-from google.oauth2 import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
-import google.auth.transport.requests
-
-# Specify the required scopes for the YouTube Data API.
-SCOPES = ['https://www.googleapis.com/auth/youtube.force-ssl']
-
-# Run the OAuth flow.
-flow = InstalledAppFlow.from_client_secrets_file('path/to/credentials.json', SCOPES)
-credentials = flow.run_local_server(port=0)
-
-# Use the credentials in your requests.
-youtube = build('youtube', 'v3', credentials=credentials)
