@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ video.title }}</title>
+</head>
+<body>
+    <h1>{{ video.title }}</h1>
+    <p><strong>Channel:</strong> {{ video.channel_title }}</p>
+    <p><strong>Published At:</strong> {{ video.published_at }}</p>
+    <p>{{ video.description }}</p>
+    <img src="{{ video.thumbnail_url }}" alt="Video Thumbnail">
+    <p><strong>Views:</strong> {{ video.view_count }}</p>
+    <p><strong>Likes:</strong> {{ video.like_count }}</p>
+    <p><strong>Dislikes:</strong> {{ video.dislike_count }}</p>
+</body>
+</html>

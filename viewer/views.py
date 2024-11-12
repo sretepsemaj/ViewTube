@@ -6,6 +6,7 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 import os
 
+
 # This function should render the `creator_home.html` template
 def viewer_view(request):
     return render(request, 'viewer/viewhome.html')  # Ensure this template path exists
@@ -14,77 +15,74 @@ YOUTUBE_API_KEY = os.getenv('TUBE_API_KEY')
 
 def youtube_video_call(request):
     """
-    Fetch videos from YouTube using the YouTube Data API based on a keyword search
-    and retrieve full descriptions.
+    Fetch YouTube videos using a search query or a specific video ID.
     """
     videos = []
     error_message = None
+    query = request.POST.get('query', '')
+    video_id = request.POST.get('video_id', '').strip()
+    search_type = request.POST.get('search_type', '')  # Capture the search type
 
     if request.method == 'POST':
-        query = request.POST.get('query')  # Get the search keyword from the form
-        print(f"Received search query: {query}")  # Debug: Log the received query
+        try:
+            youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
 
-        if query:
-            try:
-                youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
-                print("YouTube API client built successfully.")  # Debug: Confirm API client creation
+            if search_type == 'video_id_search' and video_id:
+                # Search by specific video ID
+                api_request = youtube.videos().list(
+                    part='snippet,statistics',
+                    id=video_id
+                )
+                response = api_request.execute()
+                if response.get('items'):
+                    video = response['items'][0]
+                    videos.append({
+                        'video_id': video['id'],
+                        'title': video['snippet']['title'],
+                        'description': video['snippet']['description'],
+                        'channel_title': video['snippet']['channelTitle'],
+                        'published_at': video['snippet']['publishedAt'],
+                        'thumbnail_url': video['snippet']['thumbnails']['high']['url'],
+                    })
+                else:
+                    error_message = "Video not found."
 
-                # Make the initial API call to search for video IDs based on the keyword
-                search_response = youtube.search().list(
-                    part='id',
+            elif search_type == 'keyword_search' and query:
+                # Search by query (keyword search)
+                api_request = youtube.search().list(
+                    part='snippet',
                     q=query,
-                    maxResults=50,  # Number of videos to retrieve
+                    maxResults=10,  # Number of videos to retrieve
                     type='video',  # Ensure only videos are returned
                     order='relevance'  # Order by relevance to the query
-                ).execute()
+                )
+                response = api_request.execute()
+                for item in response.get('items', []):
+                    videos.append({
+                        'video_id': item['id']['videoId'],
+                        'title': item['snippet']['title'],
+                        'description': item['snippet']['description'],
+                        'channel_title': item['snippet']['channelTitle'],
+                        'published_at': item['snippet']['publishedAt'],
+                        'thumbnail_url': item['snippet']['thumbnails']['high']['url'],
+                    })
 
-                video_ids = [item['id']['videoId'] for item in search_response.get('items', [])]
-                print(f"Video IDs found: {video_ids}")  # Debug: Log video IDs found
+                if not videos:
+                    error_message = "No videos found for the given keyword."
 
-                if video_ids:
-                    # Make the second API call to get full details of the videos
-                    video_response = youtube.videos().list(
-                        part='snippet',
-                        id=','.join(video_ids)
-                    ).execute()
-
-                    for item in video_response.get('items', []):
-                        video = {
-                            'video_id': item['id'],
-                            'title': item['snippet']['title'],
-                            'description': item['snippet']['description'],  # Full description
-                            'channel_title': item['snippet']['channelTitle'],
-                            'published_at': item['snippet']['publishedAt'],
-                            'thumbnail_url': item['snippet']['thumbnails']['high']['url']
-                        }
-                        print(f"Processed video: {video['title']} (ID: {video['video_id']})")  # Debug: Log each video processed
-                        videos.append(video)
-
-                    if not videos:
-                        error_message = "No videos found for the given keyword."
-                        print(error_message)  # Debug: Log if no videos are found
-
-                    # Save videos to session for further processing if needed
-                    request.session['videos'] = videos
-                    print(f"Saved {len(videos)} videos to session.")  # Debug: Log the number of videos saved
-
-            except HttpError as e:
-                error_message = f"An HTTP error occurred: {e.resp.status} - {e.content}"
-                print(error_message)  # Log the HTTP error
-            except Exception as e:
-                error_message = f"An error occurred: {str(e)}"
-                print(error_message)  # Log any other errors
-        else:
-            error_message = "Please enter a keyword to search."
-            print(error_message)  # Log if the query is empty
+        except HttpError as e:
+            error_message = f"An HTTP error occurred: {e.resp.status} - {e.content}"
+        except Exception as e:
+            error_message = f"An error occurred: {str(e)}"
 
     context = {
         'videos': videos,
         'error_message': error_message,
-        'query': request.POST.get('query', '')  # Preserve the search query in the form
+        'query': query,
+        'video_id': video_id
     }
     return render(request, 'viewer/videos.html', context)
-    
+
 def save_video(request):
     if request.method == 'POST' and request.session.get('videos'):
         videos_data = request.session['videos']
@@ -139,3 +137,50 @@ def render_article_data(request):
     print(f"Number of videos passed to template: {videos.count()}")
 
     return render(request, 'viewer/data.html', {'videos': videos})
+
+def get_video_captions(video_id):
+    try:
+        youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
+        
+        # Get the list of captions for the video
+        captions_request = youtube.captions().list(
+            part="id,snippet",  # Request the ID and snippet (language, name, etc.)
+            videoId=video_id
+        )
+        
+        captions_response = captions_request.execute()
+        
+        if 'items' in captions_response:
+            caption = captions_response['items'][0]  # Get the first caption available
+            caption_id = caption['id']
+            caption_language = caption['snippet']['language']
+            print(f"Captions available for video: {video_id}, language: {caption_language}")
+            
+            return caption_id  # Return caption ID for further processing
+        else:
+            print("No captions available for this video.")
+            return None
+    
+    except HttpError as e:
+        print(f"An error occurred: {e}")
+        return None
+
+def download_caption(caption_id):
+    try:
+        youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
+        
+        # Download the caption in 'srt' format
+        captions_request = youtube.captions().download(
+            id=caption_id,
+            tfmt="srt"  # You can also use 'ttml' for a different format
+        )
+        
+        caption_content = captions_request.execute()
+        print(f"Downloaded caption: {caption_content}")
+        
+        return caption_content  # You will receive the captions as text or file content
+    
+    except HttpError as e:
+        print(f"An error occurred: {e}")
+        return None
+

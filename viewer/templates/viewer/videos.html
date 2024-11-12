@@ -33,9 +33,20 @@
     <h1>Search YouTube Videos</h1>
     <form method="POST" action="{% url 'video' %}">
         {% csrf_token %}
-        <label for="query">Keyword:</label>
-        <input type="text" id="query" name="query" value="{{ query }}" required>
-        <button type="submit">Search</button>
+        
+        <div id="keyword_search">
+            <label for="query">Search Keyword:</label>
+            <input type="text" id="query" name="query" value="{{ query }}" required><br><br>
+        </div>
+
+        <div id="video_id_search">
+            <label for="video_id">Enter Video ID (optional):</label>
+            <input type="text" id="video_id" name="video_id" value="{{ video_id }}"><br><br>
+        </div>
+
+        <!-- Two submit buttons for different search types -->
+        <button type="submit" name="search_type" value="keyword_search" id="keyword_button">Search by Keyword</button>
+        <button type="submit" name="search_type" value="video_id_search" id="video_id_button">Search by Video ID</button>
     </form>
 
     {% if error_message %}
@@ -72,5 +83,17 @@
     {% endif %}
 
     <a href="{% url 'viewer_home' %}">Back to Home</a>
+    <a href="{% url 'video_data' %}">idvideo</a>
+
+    <script>
+        // Hide one search option based on button clicked
+        document.getElementById('keyword_button').onclick = function() {
+            document.getElementById('video_id_search').style.display = 'none';
+        };
+
+        document.getElementById('video_id_button').onclick = function() {
+            document.getElementById('keyword_search').style.display = 'none';
+        };
+    </script>
 </body>
 </html>
