@@ -6,6 +6,8 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 import os
 from django.http import HttpResponse
+import requests
+from datetime import datetime, timedelta
 
 # This function should render the `creator_home.html` template
 def viewer_view(request):
@@ -87,7 +89,7 @@ def youtube_video_call(request):
                 api_request = youtube.search().list(
                     part='snippet',
                     q=query,
-                    maxResults=10,
+                    maxResults=50,
                     type='video',
                     order='relevance'
                 )
@@ -127,7 +129,6 @@ def youtube_video_call(request):
     else:
         # Fallback template if needed
         return render(request, 'viewer/videos.html', context)
-
 
 
 def get_video_captions(video_id):
@@ -246,3 +247,82 @@ def render_article_data(request):
 
     return render(request, 'viewer/data.html', {'videos': videos})
 
+
+def lecture(request):
+    videos = []
+    error_message = None
+    query = 'lecture'
+
+    if request.method == 'GET':
+        try:
+            youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
+
+            # Search for videos
+            api_request = youtube.search().list(
+                part='snippet',
+                q=query,
+                maxResults=50,
+                type='video',
+                order='relevance'
+            )
+            response = api_request.execute()
+
+            for item in response.get('items', []):
+                video_id = item['id']['videoId']
+                published_at = item['snippet'].get('publishedAt', None)
+                if published_at:
+                    published_at = datetime.strptime(published_at, '%Y-%m-%dT%H:%M:%SZ')
+
+                # Fetch comments for the video
+                comments = []
+                try:
+                    comment_request = youtube.commentThreads().list(
+                        part='snippet',
+                        videoId=video_id,
+                        maxResults=100,  # Fetch up to 100 comments
+                        textFormat="plainText"
+                    )
+                    comment_response = comment_request.execute()
+
+                    # Extract comment details
+                    for comment_item in comment_response.get('items', []):
+                        comment = comment_item['snippet']['topLevelComment']['snippet']
+                        comments.append({
+                            'author_name': comment['authorDisplayName'],
+                            'comment_text': comment['textDisplay'],
+                            'like_count': comment['likeCount'],
+                            'published_at': comment['publishedAt'],
+                        })
+                except HttpError as e:
+                    # Handle the case where comments are disabled for this video
+                    if e.resp.status == 403:
+                        print(f"Comments are disabled for video: {video_id}")
+                    else:
+                        print(f"Error fetching comments for video {video_id}: {e}")
+                    comments = []  # Set to empty if we cannot fetch comments
+
+                # Add the video and comments to the list
+                videos.append({
+                    'video_id': video_id,
+                    'title': item['snippet']['title'],
+                    'description': item['snippet']['description'],
+                    'channel_title': item['snippet']['channelTitle'],
+                    'published_at': published_at,
+                    'thumbnail_url': item['snippet']['thumbnails']['high']['url'],
+                    'comments': comments  # Add comments here
+                })
+
+            if not videos:
+                error_message = "No lecture videos found."
+
+        except HttpError as e:
+            error_message = f"An HTTP error occurred: {e.resp.status} - {e.content}"
+        except Exception as e:
+            error_message = f"An error occurred: {str(e)}"
+
+    context = {
+        'videos': videos,
+        'error_message': error_message
+    }
+
+    return render(request, 'viewer/lecture.html', context)
