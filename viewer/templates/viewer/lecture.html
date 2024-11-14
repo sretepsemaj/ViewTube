@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lecture Videos</title>
+</head>
+<body>
+    <h1>Lecture Videos</h1>
+    {% if error_message %}
+        <p>{{ error_message }}</p>
+    {% else %}
+        <div class="video-list">
+            {% for video in videos %}
+                <div class="video">
+                    <h2>{{ video.title }}</h2>
+                    <p>{{ video.description }}</p>
+                    <p><strong>Channel:</strong> {{ video.channel_title }}</p>
+                    <p><strong>Video ID:</strong> {{ video.video_id }}</p>  <!-- Display the video ID -->
+                    <p><strong>Published on:</strong> 
+                        {% if video.published_at %}
+                            {{ video.published_at|date:"F j, Y" }}  <!-- Formatting the date -->
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </p>
+                    <p><a href="https://www.youtube.com/watch?v={{ video.video_id }}" target="_blank">Watch Video</a></p>
+                    <img src="{{ video.thumbnail_url }}" alt="{{ video.title }}">
+
+                    <h3>Comments ({{ video.comments|length }})</h3>
+                    {% if video.comments %}
+                        <div class="comments">
+                            {% for comment in video.comments %}
+                                <div class="comment">
+                                    <p><strong>{{ comment.author_name }}</strong></p>
+                                    <p>{{ comment.comment_text }}</p>
+                                    <p><strong>Likes:</strong> {{ comment.like_count }}</p>
+                                    <p><strong>Published:</strong> {{ comment.published_at|date:"F j, Y" }}</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p>No comments found.</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</body>
+</html>
